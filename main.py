@@ -1,5 +1,4 @@
 import requests
-import json
 import math
 
 def calculate_endo(mastery_rank, mod_rank, rerolls):
@@ -69,29 +68,30 @@ def display_results(results):
         print("-" * 30)
 
 def main():
-    """Menu principal do programa."""
-    print("Selecione uma opção:")
-    print("1 - Starting Price")
-    print("2 - Buyout Price")
-    print("3 - Both")
+    while(1):
+        """Menu principal do programa."""
+        print("Selecione uma opção:")
+        print("1 - Starting Price")
+        print("2 - Buyout Price")
+        print("3 - Both")
 
-    option_map = {
-        "1": "Starting",
-        "2": "Buyout",
-        "3": "Both"
-    }
+        option_map = {
+            "1": "Starting",
+            "2": "Buyout",
+            "3": "Both"
+        }
 
-    choice = input("Escolha (1/2/3): ")
-    option = option_map.get(choice)
+        choice = input("Escolha (1/2/3): ")
+        option = option_map.get(choice)
 
-    if not option:
-        print("Opção inválida!")
-        return
+        if not option:
+            print("Opção inválida!")
+            return
 
-    data = fetch_auctions()
-    if data:
-        results = process_auctions(data, option)
-        display_results(results)
+        data = fetch_auctions()
+        if data:
+            results = process_auctions(data, option)
+            display_results(results)
 
 if __name__ == "__main__":
     main()
