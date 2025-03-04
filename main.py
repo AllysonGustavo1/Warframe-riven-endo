@@ -33,16 +33,29 @@ def fetch_auctions():
         print(f"Erro: {response.status_code} - {response.text}")
         return None
 
-def process_auctions(data, option):
-    """Processa os leilões baseados na opção selecionada."""
+def process_auctions(data, option, max_mastery, seller_status):
+    """Processa os leilões baseados na opção selecionada, nível de maestria e status do vendedor."""
     endo_plat_list = []
 
     for auction in data.get("payload", {}).get("auctions", []):
         item = auction.get("item", {})
+        mastery_level = item.get("mastery_level", 0)
+        if mastery_level > max_mastery:
+            continue
+        
+        seller = auction.get("owner", {})
+        seller_state = seller.get("status", "offline")
+        
+        if seller_status == "In-Game" and seller_state != "ingame":
+            continue
+        if seller_status == "Online" and seller_state not in ["online", "ingame"]:
+            continue
+        if seller_status == "Both" and seller_state not in ["online", "ingame"]:
+            continue
+        
         rerolls = item.get("re_rolls", 0)
         buyout_price = auction.get("buyout_price")
         starting_price = auction.get("starting_price")
-        mastery_level = item.get("mastery_level", 0)
         mod_rank = item.get("mod_rank", 0)
         auction_id = auction.get("id")
         endo_value = calculate_endo(mastery_level, mod_rank, rerolls)
@@ -68,30 +81,49 @@ def display_results(results):
         print("-" * 30)
 
 def main():
-    while(1):
-        """Menu principal do programa."""
-        print("Selecione uma opção:")
-        print("1 - Starting Price")
-        print("2 - Buyout Price")
-        print("3 - Both")
+    """Menu principal do programa."""
+    max_mastery = int(input("Digite seu nível de maestria: "))
+    
+    print("Selecione uma opção:")
+    print("1 - Starting Price")
+    print("2 - Buyout Price")
+    print("3 - Ambos")
 
-        option_map = {
-            "1": "Starting",
-            "2": "Buyout",
-            "3": "Both"
-        }
+    option_map = {
+        "1": "Starting",
+        "2": "Buyout",
+        "3": "Both"
+    }
 
-        choice = input("Escolha (1/2/3): ")
-        option = option_map.get(choice)
+    choice = input("Escolha (1/2/3): ")
+    option = option_map.get(choice)
 
-        if not option:
-            print("Opção inválida!")
-            return
+    if not option:
+        print("Opção inválida!")
+        return
+    
+    print("Selecione o status do vendedor:")
+    print("1 - In-Game")
+    print("2 - Online")
+    print("3 - Ambos")
+    
+    status_map = {
+        "1": "In-Game",
+        "2": "Online",
+        "3": "Both"
+    }
+    
+    status_choice = input("Escolha (1/2/3): ")
+    seller_status = status_map.get(status_choice)
+    
+    if not seller_status:
+        print("Opção inválida!")
+        return
 
-        data = fetch_auctions()
-        if data:
-            results = process_auctions(data, option)
-            display_results(results)
+    data = fetch_auctions()
+    if data:
+        results = process_auctions(data, option, max_mastery, seller_status)
+        display_results(results)
 
 if __name__ == "__main__":
     main()
